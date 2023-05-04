@@ -13,10 +13,11 @@ Everything is configurable from the Home Assistant UI and everything is -of-cour
 
 Notes:
 If a touch surface is configured as a momentary button/switch (we call it "event button") then an automation must be implemented to listen to that event.
-For the exemple below we use a helper (input_boolean.test_toggle). Be sure to replace "$friendly_name" with your device name.
+For example below we use a helper (input_boolean.test_toggle). Be sure to replace "$friendly_name" with your device name.
 This automation script could be expanded to include all event buttons using a choose function
 The reason that no automation in included in the firmware is that most of the times it's a config-and-forget situation.
 Options are stored on the ESP chip every 10 minutes.
+To avoid conffusion, I suggest not to modify entities, only name and the icons.
 
 alias: event buttons toggle
 description: example
