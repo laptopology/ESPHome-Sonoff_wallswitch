@@ -1,22 +1,3 @@
-# EXAMPLE AUTOMATION using EVENT BUTTONS. replace HELPER with your ENTITIES and $friendly_name with your device
-#alias: sonoff t3 buttons toggle
-#description: example
-#trigger:
-#  - platform: event
-#    event_type: esphome.button_pressed
-#    event_data:
-#      message: $friendly_name button1.1 is pressed
-#  - platform: event
-#    event_type: esphome.button_pressed
-#    event_data:
-#      message: button1.2 is pressed... ...etc
-#condition: []
-#action:
-#  - service: input_boolean.toggle
-#    data: {}
-#    target:
-#      entity_id: input_boolean.test_toggle
-#mode: single
 substitutions:
   devicename: bedroom-sw2
   friendly_name:  "Bedroom Switch"
