@@ -1,1 +1,447 @@
-
+# EXAMPLE AUTOMATION using EVENT BUTTONS. replace HELPER with your ENTITIES and $friendly_name with your device
+#alias: sonoff t3 buttons toggle
+#description: example
+#trigger:
+#  - platform: event
+#    event_type: esphome.button_pressed
+#    event_data:
+#      message: $friendly_name button1.1 is pressed
+#  - platform: event
+#    event_type: esphome.button_pressed
+#    event_data:
+#      message: button1.2 is pressed... ...etc
+#condition: []
+#action:
+#  - service: input_boolean.toggle
+#    data: {}
+#    target:
+#      entity_id: input_boolean.test_toggle
+#mode: single
+substitutions:
+  devicename: bedroom-sw2
+  friendly_name:  "Bedroom Switch"
+  long_press: "2s"
+esphome:
+  project:
+    name: "HomeConnected.Sonoff T_series Wallswitch MultiTouch"
+    version: "2023.4.3"
+  name: $devicename
+  friendly_name: $friendly_name
+  on_boot:
+    priority: -10
+    then:
+      - script.execute: sled
+esp8266:
+  board: esp01_1m
+  restore_from_flash: true
+preferences:
+  flash_write_interval: 10min # to save RAM chip 
+logger:
+  baud_rate: 0 # to FREE some RAM
+api:
+  password: !secret api_password  
+ota:
+  password: !secret ota_password
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+#  ap: # to FREE some RAM
+#    ssid: "${devicename} Fallback"
+#    password: !secret api_password
+captive_portal: 
+#web_server: # to FREE some RAM
+#  port: 80 
+output:
+  - platform: esp8266_pwm
+    id: blue_led
+    pin: GPIO13
+    inverted: true
+light:
+  - platform: monochromatic
+    name: "$friendly_name Enable Status LED"
+    output: blue_led
+    id: led
+    entity_category: config
+script:
+  id: sled
+  then:
+    - light.turn_on: led
+    - delay: 800ms
+    - light.turn_off: led
+select:
+# Touch 1
+  - platform: template
+    name: "Touch 1 Single Click"
+    id: sc_mode1
+    options:
+      - "Binary Switch 1.1"
+      - "Binary Switch 1.2"
+      - "Binary Switch 1.3"
+      - "Switch & Relay 1.1"
+      - "Switch & Relay 1.2"
+      - "Switch & Relay 1.3"
+      - "Event Button 1.1"
+      - "Event Button 1.2"
+      - "Event Button 1.3"
+    initial_option: "Binary Switch 1.1"
+    optimistic: true
+    entity_category: config
+  - platform: template
+    name: "Touch 1 Double Click"
+    id: dc_mode1
+    options:
+      - "Binary Switch 1.1"
+      - "Binary Switch 1.2"
+      - "Binary Switch 1.3"
+      - "Switch & Relay 1.1"
+      - "Switch & Relay 1.2"
+      - "Switch & Relay 1.3"
+      - "Event Button 1.1"
+      - "Event Button 1.2"
+      - "Event Button 1.3"
+    initial_option: "Binary Switch 1.2"
+    optimistic: true
+    entity_category: config    
+  - platform: template
+    name: "Touch 1 Long Press"
+    id: lp_mode1
+    options:
+      - "Binary Switch 1.1"
+      - "Binary Switch 1.2"
+      - "Binary Switch 1.3"
+      - "Switch & Relay 1.1"
+      - "Switch & Relay 1.2"
+      - "Switch & Relay 1.3"
+      - "Event Button 1.1"
+      - "Event Button 1.2"
+      - "Event Button 1.3"
+    initial_option: "Binary Switch 1.3"
+    optimistic: true
+    entity_category: config
+# Touch 2
+  - platform: template
+    name: "Touch 2 Single Click"
+    id: sc_mode2
+    options:
+      - "Binary Switch 2.1"
+      - "Binary Switch 2.2"
+      - "Binary Switch 2.3"
+      - "Switch & Relay 2.1"
+      - "Switch & Relay 2.2"
+      - "Switch & Relay 2.3"
+      - "Event Button 2.1"
+      - "Event Button 2.2"
+      - "Event Button 2.3"
+    initial_option: "Binary Switch 2.1"
+    optimistic: true
+    entity_category: config
+  - platform: template
+    name: "Touch 2 Double Click"
+    id: dc_mode2
+    options:
+      - "Binary Switch 2.1"
+      - "Binary Switch 2.2"
+      - "Binary Switch 2.3"
+      - "Switch & Relay 2.1"
+      - "Switch & Relay 2.2"
+      - "Switch & Relay 2.3"
+      - "Event Button 2.1"
+      - "Event Button 2.2"
+      - "Event Button 2.3"
+    initial_option: "Binary Switch 2.2"
+    optimistic: true
+    entity_category: config
+  - platform: template
+    name: "Touch 2 Long Press"
+    id: lp_mode2
+    options:
+      - "Binary Switch 2.1"
+      - "Binary Switch 2.2"
+      - "Binary Switch 2.3"
+      - "Switch & Relay 2.1"
+      - "Switch & Relay 2.2"
+      - "Switch & Relay 2.3"
+      - "Event Button 2.1"
+      - "Event Button 2.2"
+      - "Event Button 2.3"
+    initial_option: "Binary Switch 2.3"
+    optimistic: true
+    entity_category: config
+binary_sensor:
+# Touch 1 sensor GPIO0
+  - platform: gpio
+    name: "$friendly_name Touch 1"
+    pin:
+      number: GPIO0
+      inverted: true
+      mode:
+        input: true
+        pullup: true
+    on_multi_click:
+# single click
+      - timing:
+          - ON for at most 1s
+          - OFF for at least 0.2s
+        then:
+          - lambda: |-
+              if (id(sc_mode1).state == "Binary Switch 1.1") {id(switch1_1).toggle();}
+              else if (id(sc_mode1).state == "Switch & Relay 1.1") {id(switch1_1).toggle(); id(relay1).toggle();}
+              else if (id(sc_mode1).state == "Binary Switch 1.2") {id(switch1_2).toggle();}
+              else if (id(sc_mode1).state == "Switch & Relay 1.2") {id(switch1_2).toggle(); id(relay1).toggle();}
+              else if (id(sc_mode1).state == "Binary Switch 1.3") {id(switch1_3).toggle();}
+              else if (id(sc_mode1).state == "Switch & Relay 1.3") {id(switch1_3).toggle(); id(relay1).toggle();}
+          - if:
+              condition:
+                - lambda: return (id(sc_mode1).state == "Event Button 1.1");
+              then:
+                - homeassistant.event:
+                    event: esphome.button_pressed
+                    data:
+                      message: $friendly_name button1.1 is pressed
+          - if:
+              condition:
+                - lambda: return (id(sc_mode1).state == "Event Button 1.2");
+              then:
+                - homeassistant.event:
+                    event: esphome.button_pressed
+                    data:
+                      message: $friendly_name button1.2 is pressed
+          - if:
+              condition:
+                - lambda: return (id(sc_mode1).state == "Event Button 1.3");
+              then:
+                - homeassistant.event:
+                    event: esphome.button_pressed
+                    data:
+                      message: $friendly_name button1.3 is pressed
+          - script.execute: sled
+# long press
+      - timing:
+          - ON for at least $long_press
+        then:
+          - lambda: |-
+              if (id(lp_mode1).state == "Binary Switch 1.1") {id(switch1_1).toggle();}
+              else if (id(lp_mode1).state == "Switch & Relay 1.1") {id(switch1_1).toggle(); id(relay1).toggle();}
+              else if (id(lp_mode1).state == "Binary Switch 1.2") {id(switch1_2).toggle();}
+              else if (id(lp_mode1).state == "Switch & Relay 1.2") {id(switch1_2).toggle(); id(relay1).toggle();}
+              else if (id(lp_mode1).state == "Binary Switch 1.3") {id(switch1_3).toggle();}
+              else if (id(lp_mode1).state == "Switch & Relay 1.3") {id(switch1_3).toggle(); id(relay1).toggle();}
+          - if:
+              condition:
+                - lambda: return (id(lp_mode1).state == "Event Button 1.1");
+              then:
+                - homeassistant.event:
+                    event: esphome.button_pressed
+                    data:
+                      message: $friendly_name button1.1 is pressed
+          - if:
+              condition:
+                - lambda: return (id(lp_mode1).state == "Event Button 1.2");
+              then:
+                - homeassistant.event:
+                    event: esphome.button_pressed
+                    data:
+                      message: $friendly_name button1.2 is pressed
+          - if:
+              condition:
+                - lambda: return (id(lp_mode1).state == "Event Button 1.3");
+              then:
+                - homeassistant.event:
+                    event: esphome.button_pressed
+                    data:
+                      message: $friendly_name button1.3 is pressed
+          - script.execute: sled
+# double click
+    on_double_click:
+      min_length: 50ms
+      max_length: 350ms
+      then:
+        - lambda: |-
+            if (id(dc_mode1).state == "Binary Switch 1.1") {id(switch1_1).toggle();}
+            else if (id(dc_mode1).state == "Switch & Relay 1.1") {id(switch1_1).toggle(); id(relay1).toggle();}
+            else if (id(dc_mode1).state == "Binary Switch 1.2") {id(switch1_2).toggle();}
+            else if (id(dc_mode1).state == "Switch & Relay 1.2") {id(switch1_2).toggle(); id(relay1).toggle();}
+            else if (id(dc_mode1).state == "Binary Switch 1.3") {id(switch1_3).toggle();}
+            else if (id(dc_mode1).state == "Switch & Relay 1.3") {id(switch1_3).toggle(); id(relay1).toggle();}
+        - if:
+            condition:
+              - lambda: return (id(dc_mode1).state == "Event Button 1.1");
+            then:
+              - homeassistant.event:
+                  event: esphome.button_pressed
+                  data:
+                    message: $friendly_name button1.1 is pressed
+        - if:
+            condition:
+              - lambda: return (id(dc_mode1).state == "Event Button 1.2");
+            then:
+              - homeassistant.event:
+                  event: esphome.button_pressed
+                  data:
+                    message: $friendly_name button1.2 is pressed
+        - if:
+            condition:
+              - lambda: return (id(dc_mode1).state == "Event Button 1.3");
+            then:
+              - homeassistant.event:
+                  event: esphome.button_pressed
+                  data:
+                    message: $friendly_name button1.3 is pressed            
+        - script.execute: sled
+# Touch 2 sensor GPIO9
+  - platform: gpio
+    name: "$friendly_name Touch 2"
+    pin:
+      number: GPIO9
+      inverted: true
+      mode:
+        input: true
+        pullup: true
+    on_multi_click:
+# single click
+      - timing:
+          - ON for at most 1s
+          - OFF for at least 0.2s
+        then:
+          - lambda: |-
+              if (id(sc_mode2).state == "Binary Switch 2.1") {id(switch2_1).toggle();}
+              else if (id(sc_mode2).state == "Switch & Relay 2.1") {id(switch2_1).toggle(); id(relay2).toggle();}
+              else if (id(sc_mode2).state == "Binary Switch 2.2") {id(switch2_2).toggle();}
+              else if (id(sc_mode2).state == "Switch & Relay 2.2") {id(switch2_2).toggle(); id(relay2).toggle();}
+              else if (id(sc_mode2).state == "Binary Switch 2.3") {id(switch2_3).toggle();}
+              else if (id(sc_mode2).state == "Switch & Relay 2.3") {id(switch2_3).toggle(); id(relay2).toggle();}
+          - if:
+              condition:
+                - lambda: return (id(sc_mode2).state == "Event Button 2.1");
+              then:
+                - homeassistant.event:
+                    event: esphome.button_pressed
+                    data:
+                      message: $friendly_name button2.1 is pressed
+          - if:
+              condition:
+                - lambda: return (id(sc_mode2).state == "Event Button 2.2");
+              then:
+                - homeassistant.event:
+                    event: esphome.button_pressed
+                    data:
+                      message: $friendly_name button2.2 is pressed
+          - if:
+              condition:
+                - lambda: return (id(sc_mode2).state == "Event Button 2.3");
+              then:
+                - homeassistant.event:
+                    event: esphome.button_pressed
+                    data:
+                      message: $friendly_name button2.3 is pressed
+          - script.execute: sled
+# long press
+      - timing:
+          - ON for at least $long_press
+        then:
+          - lambda: |-
+              if (id(lp_mode2).state == "Binary Switch 2.1") {id(switch2_1).toggle();}
+              else if (id(lp_mode2).state == "Switch & Relay 2.1") {id(switch2_1).toggle(); id(relay2).toggle();}
+              else if (id(lp_mode2).state == "Binary Switch 2.2") {id(switch2_2).toggle();}
+              else if (id(lp_mode2).state == "Switch & Relay 2.2") {id(switch2_2).toggle(); id(relay2).toggle();}
+              else if (id(lp_mode2).state == "Binary Switch 2.3") {id(switch2_3).toggle();}
+              else if (id(lp_mode2).state == "Switch & Relay 2.3") {id(switch2_3).toggle(); id(relay2).toggle();}
+          - if:
+              condition:
+                - lambda: return (id(lp_mode2).state == "Event Button 2.1");
+              then:
+                - homeassistant.event:
+                    event: esphome.button_pressed
+                    data:
+                      message: $friendly_name button2.1 is pressed
+          - if:
+              condition:
+                - lambda: return (id(lp_mode2).state == "Event Button 2.2");
+              then:
+                - homeassistant.event:
+                    event: esphome.button_pressed
+                    data:
+                      message: $friendly_name button2.2 is pressed
+          - if:
+              condition:
+                - lambda: return (id(lp_mode2).state == "Event Button 2.3");
+              then:
+                - homeassistant.event:
+                    event: esphome.button_pressed
+                    data:
+                      message: $friendly_name button2.3 is pressed
+          - script.execute: sled
+# double click
+    on_double_click:
+      min_length: 50ms
+      max_length: 350ms
+      then:
+        - lambda: |-
+            if (id(dc_mode2).state == "Binary Switch 2.1") {id(switch2_1).toggle();}
+            else if (id(dc_mode2).state == "Switch & Relay 2.1") {id(switch2_1).toggle(); id(relay2).toggle();}
+            else if (id(dc_mode2).state == "Binary Switch 2.2") {id(switch2_2).toggle();}
+            else if (id(dc_mode2).state == "Switch & Relay 2.2") {id(switch2_2).toggle(); id(relay2).toggle();}
+            else if (id(dc_mode2).state == "Binary Switch 2.3") {id(switch2_3).toggle();}
+            else if (id(dc_mode2).state == "Switch & Relay 2.3") {id(switch2_3).toggle(); id(relay2).toggle();}
+        - if:
+            condition:
+              - lambda: return (id(dc_mode2).state == "Event Button 2.1");
+            then:
+              - homeassistant.event:
+                  event: esphome.button_pressed
+                  data:
+                    message: $friendly_name button2.1 is pressed
+        - if:
+            condition:
+              - lambda: return (id(dc_mode2).state == "Event Button 2.2");
+            then:
+              - homeassistant.event:
+                  event: esphome.button_pressed
+                  data:
+                    message: $friendly_name button2.2 is pressed
+        - if:
+            condition:
+              - lambda: return (id(dc_mode2).state == "Event Button 2.3");
+            then:
+              - homeassistant.event:
+                  event: esphome.button_pressed
+                  data:
+                    message: $friendly_name button2.3 is pressed            
+        - script.execute: sled
+switch:
+# Real hardware relays
+  - platform: gpio
+    name: "$friendly_name Relay 1"
+    pin: GPIO12
+    id: relay1
+  - platform: gpio
+    name: "$friendly_name Relay 2"
+    pin: GPIO5
+    id: relay2
+# Virtual switches (use these for automations no matter if relays are enabled or not)
+# Switch group 1
+  - platform: template
+    name: "$friendly_name Switch 1.1"
+    id: switch1_1
+    optimistic: true
+  - platform: template
+    name: "$friendly_name Switch 1.2"
+    id: switch1_2
+    optimistic: true
+  - platform: template
+    name: "$friendly_name Switch 1.3"
+    id: switch1_3
+    optimistic: true
+# Switch group 2
+  - platform: template
+    name: "$friendly_name Switch 2.1"
+    id: switch2_1
+    optimistic: true
+  - platform: template
+    name: "$friendly_name Switch 2.2"
+    id: switch2_2
+    optimistic: true
+  - platform: template
+    name: "$friendly_name Switch 2.3"
+    id: switch2_3
+    optimistic: true
